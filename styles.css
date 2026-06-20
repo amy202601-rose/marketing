@@ -296,7 +296,7 @@ td a {
   word-break: break-all;
 }
 
-.type-select {
+.type-input {
   min-width: 210px;
   padding: 8px 10px;
   background: #fbfcfb;

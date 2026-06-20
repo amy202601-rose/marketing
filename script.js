@@ -216,11 +216,12 @@ function maskPassword(value) {
   return "••••••••";
 }
 
-function accountTypeSelect(value, id) {
-  const options = accountTypeOptions
-    .map((option) => `<option value="${option}"${option === value ? " selected" : ""}>${option}</option>`)
-    .join("");
-  return `<select class="type-select" data-account-id="${id}" aria-label="账号类型">${options}</select>`;
+function accountTypeOptionsMarkup() {
+  return accountTypeOptions.map((option) => `<option value="${option}"></option>`).join("");
+}
+
+function accountTypeInput(value, id) {
+  return `<input class="type-input" list="accountTypeOptions" data-account-id="${id}" aria-label="账号类型" value="${value}" />`;
 }
 
 function renderAccounts() {
@@ -239,7 +240,7 @@ function renderAccounts() {
         .map((field) => {
           const value = account[field] || "";
           if (field === "账号类型") {
-            return `<td>${accountTypeSelect(value, account.ID)}</td>`;
+            return `<td>${accountTypeInput(value, account.ID)}</td>`;
           }
           if (field === "主页地址" && value) {
             return `<td><a href="${value}" target="_blank" rel="noreferrer">打开主页</a></td>`;
@@ -262,8 +263,7 @@ function renderDialogFields() {
   fieldWrap.innerHTML = accountFields
     .map((field) => {
       if (field === "账号类型") {
-        const options = accountTypeOptions.map((option) => `<option value="${option}">${option}</option>`).join("");
-        return `<label>${field}<select name="${field}">${options}</select></label>`;
+        return `<label>${field}<input name="${field}" list="accountTypeOptions" value="${accountTypeOptions[0]}" /></label>`;
       }
       const type = field === "创建日期" ? "date" : field === "密码" ? "password" : "text";
       return `<label>${field}<input type="${type}" name="${field}" /></label>`;
@@ -339,12 +339,14 @@ function bindDialog() {
 }
 
 function bindAccountTable() {
-  accountRows.addEventListener("change", (event) => {
-    if (!event.target.matches(".type-select")) return;
+  accountRows.addEventListener("input", (event) => {
+    if (!event.target.matches(".type-input")) return;
     const account = accounts.find((item) => item.ID === event.target.dataset.accountId);
     if (account) account.账号类型 = event.target.value;
   });
 }
+
+document.body.insertAdjacentHTML("beforeend", `<datalist id="accountTypeOptions">${accountTypeOptionsMarkup()}</datalist>`);
 
 fillFilter(platformFilter, uniqueValues("平台"));
 fillFilter(ownerFilter, uniqueValues("负责人"));
