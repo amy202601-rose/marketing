@@ -235,6 +235,7 @@ function uniqueValues(key) {
 }
 
 function fillFilter(select, values) {
+  if (!select) return;
   values.forEach((value) => {
     const option = document.createElement("option");
     option.value = value;
@@ -272,6 +273,7 @@ function statusSelect(value, id) {
 }
 
 function renderAccounts() {
+  if (!accountRows || !accountSearch || !platformFilter || !ownerFilter) return;
   const term = accountSearch.value.trim().toLowerCase();
   const platform = platformFilter.value;
   const owner = ownerFilter.value;
@@ -280,7 +282,7 @@ function renderAccounts() {
     return (platform === "all" || account.平台 === platform) && (owner === "all" || account.负责人 === owner) && haystack.includes(term);
   });
 
-  metricAccounts.textContent = filtered.length;
+  if (metricAccounts) metricAccounts.textContent = filtered.length;
   accountRows.innerHTML = filtered
     .map((account) => {
       return `<tr>${accountFields
@@ -307,6 +309,7 @@ function renderAccounts() {
 
 function renderDialogFields() {
   const fieldWrap = document.querySelector("#accountFields");
+  if (!fieldWrap) return;
   fieldWrap.innerHTML = accountFields
     .map((field) => {
       if (field === "账号类型") {
@@ -329,18 +332,28 @@ function renderDialogFields() {
 }
 
 function renderCreators() {
-  document.querySelector("#creatorCards").innerHTML = creators
-    .map((creator) => `<article class="creator-card"><small>${creator.role}</small><h3>${creator.name}</h3><p>${creator.style}</p><strong>${creator.tone}</strong></article>`)
-    .join("");
+  const creatorCards = document.querySelector("#creatorCards");
+  if (creatorCards) {
+    creatorCards.innerHTML = creators
+      .map((creator) => `<article class="creator-card"><small>${creator.role}</small><h3>${creator.name}</h3><p>${creator.style}</p><strong>${creator.tone}</strong></article>`)
+      .join("");
+  }
 
-  document.querySelector("#creatorSelect").innerHTML = creators.map((creator) => `<option>${creator.name}</option>`).join("");
+  const creatorSelect = document.querySelector("#creatorSelect");
+  if (creatorSelect) creatorSelect.innerHTML = creators.map((creator) => `<option>${creator.name}</option>`).join("");
 }
 
 function generateContent() {
-  const audience = document.querySelector("#audience").value;
-  const goal = document.querySelector("#goal").value;
-  const creatorName = document.querySelector("#creatorSelect").value;
-  const channel = document.querySelector("#channel").value;
+  const output = document.querySelector("#generatedContent");
+  const audienceEl = document.querySelector("#audience");
+  const goalEl = document.querySelector("#goal");
+  const creatorEl = document.querySelector("#creatorSelect");
+  const channelEl = document.querySelector("#channel");
+  if (!output || !audienceEl || !goalEl || !creatorEl || !channelEl) return;
+  const audience = audienceEl.value;
+  const goal = goalEl.value;
+  const creatorName = creatorEl.value;
+  const channel = channelEl.value;
   const creator = creators.find((item) => item.name === creatorName);
   const topics = {
     "加拿大新移民家庭": "刚来加拿大，为什么银行更在意你的现金流证据？",
@@ -353,7 +366,7 @@ function generateContent() {
   const copy = `开头：很多${audience}以为金融申请只看一个数字，但真正决定结果的，是材料能不能讲清楚你的稳定性。\n中段：用一个真实场景解释：收入、负债、首付来源和未来计划要能互相对上。\n结尾：如果你想少走弯路，可以先把自己的情况按这三项列出来，再决定下一步咨询。`;
   const imagePrompt = `为${channel}生成一张金融新媒体封面：主题“${topics[audience]}”，画面要有加拿大城市生活感、专业但不冰冷，留出标题区域，适合${creator.role}出镜，避免收益承诺和夸张金钱符号。`;
 
-  document.querySelector("#generatedContent").innerHTML = `
+  output.innerHTML = `
     <article><h3>今日话题</h3><p>${topics[audience]}</p><p>目标：${goal}；平台：${channel}</p></article>
     <article><h3>${creator.name} 风格文案</h3><p>${copy.replace(/\n/g, "<br />")}</p><p><strong>语气：</strong>${creator.tone}</p></article>
     <article><h3>封面设计提示词</h3><p>${imagePrompt}</p></article>
@@ -363,6 +376,7 @@ function generateContent() {
 
 function bindTraining() {
   const output = document.querySelector("#trainingOutput");
+  if (!output) return;
   document.querySelectorAll("[data-training]").forEach((button) => {
     button.addEventListener("click", () => {
       const type = button.dataset.training;
@@ -378,7 +392,9 @@ function bindTraining() {
 
 function bindLogs() {
   const list = document.querySelector("#logList");
-  document.querySelector("#saveLogBtn").addEventListener("click", () => {
+  const saveLogBtn = document.querySelector("#saveLogBtn");
+  if (!list || !saveLogBtn) return;
+  saveLogBtn.addEventListener("click", () => {
     const owner = document.querySelector("#logOwner").value.trim() || "未填写";
     const type = document.querySelector("#logType").value;
     const content = document.querySelector("#logContent").value.trim() || "记录了一项工作进展。";
@@ -392,10 +408,13 @@ function bindLogs() {
 
 function bindDialog() {
   const dialog = document.querySelector("#accountDialog");
-  document.querySelector("#addAccountBtn").addEventListener("click", () => dialog.showModal());
+  const addAccountBtn = document.querySelector("#addAccountBtn");
+  if (!dialog || !addAccountBtn) return;
+  addAccountBtn.addEventListener("click", () => dialog.showModal());
 }
 
 function bindAccountTable() {
+  if (!accountRows) return;
   accountRows.addEventListener("input", (event) => {
     if (!event.target.matches(".editable-field-input")) return;
     const account = accounts.find((item) => item.ID === event.target.dataset.accountId);
@@ -426,7 +445,8 @@ bindDialog();
 bindAccountTable();
 generateContent();
 
-accountSearch.addEventListener("input", renderAccounts);
-platformFilter.addEventListener("change", renderAccounts);
-ownerFilter.addEventListener("change", renderAccounts);
-document.querySelector("#generateBtn").addEventListener("click", generateContent);
+if (accountSearch) accountSearch.addEventListener("input", renderAccounts);
+if (platformFilter) platformFilter.addEventListener("change", renderAccounts);
+if (ownerFilter) ownerFilter.addEventListener("change", renderAccounts);
+const generateBtn = document.querySelector("#generateBtn");
+if (generateBtn) generateBtn.addEventListener("click", generateContent);

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>每日工作记录 | NorthBridge Finance</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand"><span class="brand-mark">NB</span><div><strong>NorthBridge Finance</strong><small>新媒体市场部</small></div></div>
+        <nav class="nav" aria-label="主导航">
+          <a href="index.html">总览</a>
+          <a href="accounts.html">网站帐号管理</a>
+          <a href="sop.html">社交媒体SOP</a>
+          <a href="daily-log.html" class="active">每日工作记录</a>
+          <a href="sense-training.html">网感训练</a>
+          <a href="generator.html">内容生成器</a>
+          <a href="team-style.html">员工风格库</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section class="page-title">
+          <p>Daily Record</p>
+          <h1>每日工作记录</h1>
+        </section>
+        <section class="panel">
+          <div class="section-head">
+            <div><p>Work Log</p><h2>记录今天的进展</h2></div>
+            <button class="primary-btn" id="saveLogBtn" type="button">保存记录</button>
+          </div>
+          <form class="log-form">
+            <input id="logOwner" placeholder="负责人" />
+            <select id="logType">
+              <option>选题</option>
+              <option>拍摄</option>
+              <option>剪辑</option>
+              <option>发布</option>
+              <option>复盘</option>
+            </select>
+            <textarea id="logContent" placeholder="今天完成了什么？遇到什么素材、评论或客户问题？"></textarea>
+          </form>
+          <div id="logList" class="log-list"></div>
+        </section>
+      </main>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -17,25 +17,25 @@
           </div>
         </div>
         <nav class="nav" aria-label="主导航">
-          <a href="#dashboard" class="active">总览</a>
-          <a href="#accounts">网站帐号管理</a>
-          <a href="#sop">社交媒体SOP</a>
-          <a href="#daily-log">每日工作记录</a>
-          <a href="#sense-training">网感训练</a>
-          <a href="#generator">内容生成器</a>
-          <a href="#team-style">员工风格库</a>
+          <a href="index.html" class="active">总览</a>
+          <a href="accounts.html">网站帐号管理</a>
+          <a href="sop.html">社交媒体SOP</a>
+          <a href="daily-log.html">每日工作记录</a>
+          <a href="sense-training.html">网感训练</a>
+          <a href="generator.html">内容生成器</a>
+          <a href="team-style.html">员工风格库</a>
         </nav>
       </aside>
 
       <main class="main">
-        <section id="dashboard" class="hero-section">
+        <section class="hero-section">
           <img src="assets/marketing-ops-hero.png" alt="新媒体运营工作台" />
           <div class="hero-overlay">
             <p>加拿大精品金融服务机构</p>
             <h1>新媒体平台市场营销部门网站</h1>
             <div class="hero-actions">
-              <a href="#generator">生成今日选题</a>
-              <a href="#daily-log">记录工作</a>
+              <a href="generator.html">生成今日选题</a>
+              <a href="daily-log.html">记录工作</a>
             </div>
           </div>
         </section>
@@ -63,185 +63,24 @@
           </div>
         </section>
 
-        <section id="accounts" class="panel">
+        <section class="panel">
           <div class="section-head">
             <div>
-              <p>Account Vault</p>
-              <h2>网站帐号管理</h2>
-            </div>
-            <button class="primary-btn" id="addAccountBtn" type="button">新增账号</button>
-          </div>
-          <div class="toolbar" aria-label="账号筛选">
-            <input id="accountSearch" type="search" placeholder="搜索平台、账号名称、负责人、备注" />
-            <select id="platformFilter" aria-label="平台筛选">
-              <option value="all">全部平台</option>
-            </select>
-            <select id="ownerFilter" aria-label="负责人筛选">
-              <option value="all">全部负责人</option>
-            </select>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>账号类型</th>
-                  <th>平台</th>
-                  <th>账号名称</th>
-                  <th>主页地址</th>
-                  <th>绑定手机号</th>
-                  <th>用户名</th>
-                  <th>密码</th>
-                  <th>负责人</th>
-                  <th>备注</th>
-                  <th>状态</th>
-                  <th>创建日期</th>
-                </tr>
-              </thead>
-              <tbody id="accountRows"></tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="grid-two">
-          <div id="sop" class="panel">
-            <div class="section-head">
-              <div>
-                <p>Publishing SOP</p>
-                <h2>社交媒体SOP</h2>
-              </div>
-            </div>
-            <div class="sop-list">
-              <label><input type="checkbox" checked /> 选题匹配目标客群：新移民、投资贷款、自雇人士、家庭资产规划</label>
-              <label><input type="checkbox" checked /> 脚本含金融免责声明，不承诺收益，不暗示审批结果</label>
-              <label><input type="checkbox" /> 出镜员工确认：语气、案例、CTA 与个人风格一致</label>
-              <label><input type="checkbox" /> 发布前检查封面、字幕、链接、平台标签和评论引导</label>
-              <label><input type="checkbox" /> 发布后 30 分钟内完成首轮互动与问题记录</label>
+              <p>Workspace</p>
+              <h2>栏目入口</h2>
             </div>
           </div>
-
-          <div id="daily-log" class="panel">
-            <div class="section-head">
-              <div>
-                <p>Daily Record</p>
-                <h2>每日工作记录</h2>
-              </div>
-              <button class="primary-btn" id="saveLogBtn" type="button">保存记录</button>
-            </div>
-            <form class="log-form">
-              <input id="logOwner" placeholder="负责人" />
-              <select id="logType">
-                <option>选题</option>
-                <option>拍摄</option>
-                <option>剪辑</option>
-                <option>发布</option>
-                <option>复盘</option>
-              </select>
-              <textarea id="logContent" placeholder="今天完成了什么？遇到什么素材、评论或客户问题？"></textarea>
-            </form>
-            <div id="logList" class="log-list"></div>
+          <div class="module-grid">
+            <a href="accounts.html"><strong>网站帐号管理</strong><span>维护账号字段、平台、手机号和状态。</span></a>
+            <a href="sop.html"><strong>社交媒体SOP</strong><span>发布前后流程、合规检查和复盘动作。</span></a>
+            <a href="daily-log.html"><strong>每日工作记录</strong><span>记录负责人、工作类型和当天进展。</span></a>
+            <a href="sense-training.html"><strong>网感训练</strong><span>训练钩子、评论拆解和爆款结构复盘。</span></a>
+            <a href="generator.html"><strong>内容生成器</strong><span>生成话题、文案和封面设计提示词。</span></a>
+            <a href="team-style.html"><strong>员工风格库</strong><span>管理出镜员工的人设、语气和文案风格。</span></a>
           </div>
-        </section>
-
-        <section id="sense-training" class="panel">
-          <div class="section-head">
-            <div>
-              <p>Content Sense Gym</p>
-              <h2>员工网感训练与培训</h2>
-            </div>
-          </div>
-          <div class="training-grid">
-            <article>
-              <span>训练 01</span>
-              <h3>3 秒钩子改写</h3>
-              <p>把“加拿大贷款利率变化”改成用户愿意停留的开头，避免夸张承诺。</p>
-              <button data-training="hook" type="button">生成练习</button>
-            </article>
-            <article>
-              <span>训练 02</span>
-              <h3>评论区问题拆解</h3>
-              <p>把用户留言拆成痛点、误区、合规回答和下条内容选题。</p>
-              <button data-training="comment" type="button">生成练习</button>
-            </article>
-            <article>
-              <span>训练 03</span>
-              <h3>爆款结构复盘</h3>
-              <p>学习财经内容的冲突、案例、可信度与行动引导结构。</p>
-              <button data-training="review" type="button">生成练习</button>
-            </article>
-          </div>
-          <div id="trainingOutput" class="output-box"></div>
-        </section>
-
-        <section id="generator" class="panel">
-          <div class="section-head">
-            <div>
-              <p>AI Studio</p>
-              <h2>话题、文案和设计图片生成</h2>
-            </div>
-            <button class="primary-btn" id="generateBtn" type="button">生成内容</button>
-          </div>
-          <div class="generator-grid">
-            <label>
-              目标客群
-              <select id="audience">
-                <option>加拿大新移民家庭</option>
-                <option>首次购房者</option>
-                <option>自雇人士</option>
-                <option>企业主</option>
-                <option>留学生家长</option>
-              </select>
-            </label>
-            <label>
-              内容目标
-              <select id="goal">
-                <option>建立信任</option>
-                <option>解释复杂概念</option>
-                <option>引导私信咨询</option>
-                <option>回应常见误区</option>
-              </select>
-            </label>
-            <label>
-              出镜员工
-              <select id="creatorSelect"></select>
-            </label>
-            <label>
-              平台
-              <select id="channel">
-                <option>小红书</option>
-                <option>抖音</option>
-                <option>TikTok</option>
-                <option>Instagram</option>
-                <option>YouTube Shorts</option>
-              </select>
-            </label>
-          </div>
-          <div id="generatedContent" class="generated-content"></div>
-        </section>
-
-        <section id="team-style" class="panel">
-          <div class="section-head">
-            <div>
-              <p>Creator Voice</p>
-              <h2>出镜员工风格库</h2>
-            </div>
-          </div>
-          <div class="creator-cards" id="creatorCards"></div>
         </section>
       </main>
     </div>
-
-    <dialog id="accountDialog">
-      <form method="dialog" class="dialog-card">
-        <h2>新增账号字段</h2>
-        <p>字段已按 Excel 表头配置，可接入后端后保存到数据库。</p>
-        <div class="dialog-grid" id="accountFields"></div>
-        <menu>
-          <button value="cancel">取消</button>
-          <button class="primary-btn" value="confirm">保存</button>
-        </menu>
-      </form>
-    </dialog>
 
     <script src="script.js"></script>
   </body>

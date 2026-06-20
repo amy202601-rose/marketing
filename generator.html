@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>内容生成器 | NorthBridge Finance</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand"><span class="brand-mark">NB</span><div><strong>NorthBridge Finance</strong><small>新媒体市场部</small></div></div>
+        <nav class="nav" aria-label="主导航">
+          <a href="index.html">总览</a>
+          <a href="accounts.html">网站帐号管理</a>
+          <a href="sop.html">社交媒体SOP</a>
+          <a href="daily-log.html">每日工作记录</a>
+          <a href="sense-training.html">网感训练</a>
+          <a href="generator.html" class="active">内容生成器</a>
+          <a href="team-style.html">员工风格库</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section class="page-title">
+          <p>AI Studio</p>
+          <h1>话题、文案和设计图片生成</h1>
+        </section>
+        <section class="panel">
+          <div class="section-head">
+            <div><p>Prompt Builder</p><h2>内容生成器</h2></div>
+            <button class="primary-btn" id="generateBtn" type="button">生成内容</button>
+          </div>
+          <div class="generator-grid">
+            <label>目标客群<select id="audience"><option>加拿大新移民家庭</option><option>首次购房者</option><option>自雇人士</option><option>企业主</option><option>留学生家长</option></select></label>
+            <label>内容目标<select id="goal"><option>建立信任</option><option>解释复杂概念</option><option>引导私信咨询</option><option>回应常见误区</option></select></label>
+            <label>出镜员工<select id="creatorSelect"></select></label>
+            <label>平台<select id="channel"><option>小红书</option><option>抖音</option><option>TikTok</option><option>Instagram</option><option>YouTube</option></select></label>
+          </div>
+          <div id="generatedContent" class="generated-content"></div>
+        </section>
+      </main>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>

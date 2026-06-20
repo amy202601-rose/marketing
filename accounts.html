@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>网站帐号管理 | NorthBridge Finance</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand"><span class="brand-mark">NB</span><div><strong>NorthBridge Finance</strong><small>新媒体市场部</small></div></div>
+        <nav class="nav" aria-label="主导航">
+          <a href="index.html">总览</a>
+          <a href="accounts.html" class="active">网站帐号管理</a>
+          <a href="sop.html">社交媒体SOP</a>
+          <a href="daily-log.html">每日工作记录</a>
+          <a href="sense-training.html">网感训练</a>
+          <a href="generator.html">内容生成器</a>
+          <a href="team-style.html">员工风格库</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section class="page-title">
+          <p>Account Vault</p>
+          <h1>网站帐号管理</h1>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p>Account Fields</p>
+              <h2>账号资产表</h2>
+            </div>
+            <button class="primary-btn" id="addAccountBtn" type="button">新增账号</button>
+          </div>
+          <div class="toolbar" aria-label="账号筛选">
+            <input id="accountSearch" type="search" placeholder="搜索平台、账号名称、负责人、备注" />
+            <select id="platformFilter" aria-label="平台筛选">
+              <option value="all">全部平台</option>
+            </select>
+            <select id="ownerFilter" aria-label="负责人筛选">
+              <option value="all">全部负责人</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>账号类型</th>
+                  <th>平台</th>
+                  <th>账号名称</th>
+                  <th>主页地址</th>
+                  <th>绑定手机号</th>
+                  <th>用户名</th>
+                  <th>密码</th>
+                  <th>负责人</th>
+                  <th>备注</th>
+                  <th>状态</th>
+                  <th>创建日期</th>
+                </tr>
+              </thead>
+              <tbody id="accountRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="accountDialog">
+      <form method="dialog" class="dialog-card">
+        <h2>新增账号字段</h2>
+        <p>字段已按 Excel 表头配置，可接入后端后保存到数据库。</p>
+        <div class="dialog-grid" id="accountFields"></div>
+        <menu>
+          <button value="cancel">取消</button>
+          <button class="primary-btn" value="confirm">保存</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script src="script.js"></script>
+  </body>
+</html>
