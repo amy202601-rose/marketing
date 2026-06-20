@@ -353,6 +353,10 @@ td a {
   background: #fbfcfb;
 }
 
+.option-select {
+  min-width: 160px;
+}
+
 .status-select {
   min-width: 90px;
 }

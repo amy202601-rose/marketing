@@ -285,15 +285,19 @@ function datalistOptionsMarkup(options) {
 function editableFieldInput(field, value, id) {
   const listMap = {
     账号类型: "accountTypeOptions",
-    平台: "platformOptions",
     绑定手机号: "phoneOptions"
   };
   return `<input class="editable-field-input" list="${listMap[field]}" data-field="${field}" data-account-id="${id}" aria-label="${field}" value="${escapeHtml(value)}" />`;
 }
 
+function platformSelect(value, id) {
+  const options = platformOptions.map((option) => `<option value="${escapeHtml(option)}"${option === value ? " selected" : ""}>${escapeHtml(option)}</option>`).join("");
+  return `<select class="editable-field-input option-select" data-field="平台" data-account-id="${id}" aria-label="平台">${options}</select>`;
+}
+
 function statusSelect(value, id) {
   const options = statusOptions.map((option) => `<option value="${escapeHtml(option)}"${option === value ? " selected" : ""}>${escapeHtml(option)}</option>`).join("");
-  return `<select class="editable-field-input status-select" data-field="状态" data-account-id="${id}" aria-label="状态">${options}</select>`;
+  return `<select class="editable-field-input option-select status-select" data-field="状态" data-account-id="${id}" aria-label="状态">${options}</select>`;
 }
 
 function editableTextInput(field, value, id) {
@@ -304,7 +308,10 @@ function editableTextInput(field, value, id) {
 function renderAccountCell(account, field, isEditing) {
   const value = account[field] || "";
   if (field === "ID") return `<td>${escapeHtml(value)}</td>`;
-  if (isEditing && ["账号类型", "平台", "绑定手机号"].includes(field)) {
+  if (isEditing && field === "平台") {
+    return `<td>${platformSelect(value, account.ID)}</td>`;
+  }
+  if (isEditing && ["账号类型", "绑定手机号"].includes(field)) {
     return `<td>${editableFieldInput(field, value, account.ID)}</td>`;
   }
   if (isEditing && field === "状态") {
@@ -360,7 +367,8 @@ function renderDialogFields() {
         return `<label>${field}<input name="${field}" list="accountTypeOptions" value="${accountTypeOptions[0]}" /></label>`;
       }
       if (field === "平台") {
-        return `<label>${field}<input name="${field}" list="platformOptions" value="${platformOptions[0]}" /></label>`;
+        const options = platformOptions.map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join("");
+        return `<label>${field}<select name="${field}">${options}</select></label>`;
       }
       if (field === "绑定手机号") {
         return `<label>${field}<input name="${field}" list="phoneOptions" /></label>`;
@@ -509,7 +517,6 @@ function bindAccountTable() {
 document.body.insertAdjacentHTML(
   "beforeend",
   `<datalist id="accountTypeOptions">${accountTypeOptionsMarkup()}</datalist>
-  <datalist id="platformOptions">${datalistOptionsMarkup(platformOptions)}</datalist>
   <datalist id="phoneOptions">${datalistOptionsMarkup(phoneOptions)}</datalist>`
 );
 
