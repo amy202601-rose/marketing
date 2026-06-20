@@ -21,6 +21,39 @@ const accountTypeOptions = [
   "其他"
 ];
 
+const platformOptions = [
+  "小红书",
+  "抖音",
+  "视频号",
+  "金融主网站",
+  "YouTube",
+  "TikTok",
+  "X",
+  "Instagram",
+  "FaceBook",
+  "Linkedin"
+];
+
+const phoneOptions = [
+  "+14038880796 Wallace",
+  "+13685503645 Wallace(Amelia)",
+  "13998477214 王立昊",
+  "13998691596 何艳东",
+  "13998699204 何艳东",
+  "19818937484 何艳东",
+  "13998543740 何艳东",
+  "13284117150 Amy",
+  "18642849285 何栋良",
+  "13332215816 何福满",
+  "15940833392 张淑文",
+  "13604287006 王福治",
+  "13130406862 王福治",
+  "13840731828 张闯",
+  "13624179333 孟静"
+];
+
+const statusOptions = ["启用", "停用"];
+
 const accounts = [
   {
     ID: "10",
@@ -67,7 +100,7 @@ const accounts = [
   {
     ID: "3",
     账号类型: "wallacewang.ca（主号英文）",
-    平台: "Facebook",
+    平台: "FaceBook",
     账号名称: "",
     主页地址: "https://example.com/facebook/brand",
     绑定手机号: "",
@@ -109,7 +142,7 @@ const accounts = [
   {
     ID: "4",
     账号类型: "YouTube长视频",
-    平台: "YouTube Shorts",
+    平台: "YouTube",
     账号名称: "NorthBridge Finance",
     主页地址: "https://example.com/youtube/brand-shorts",
     绑定手机号: "",
@@ -220,8 +253,22 @@ function accountTypeOptionsMarkup() {
   return accountTypeOptions.map((option) => `<option value="${option}"></option>`).join("");
 }
 
-function accountTypeInput(value, id) {
-  return `<input class="type-input" list="accountTypeOptions" data-account-id="${id}" aria-label="账号类型" value="${value}" />`;
+function datalistOptionsMarkup(options) {
+  return options.map((option) => `<option value="${option}"></option>`).join("");
+}
+
+function editableFieldInput(field, value, id) {
+  const listMap = {
+    账号类型: "accountTypeOptions",
+    平台: "platformOptions",
+    绑定手机号: "phoneOptions"
+  };
+  return `<input class="editable-field-input" list="${listMap[field]}" data-field="${field}" data-account-id="${id}" aria-label="${field}" value="${value}" />`;
+}
+
+function statusSelect(value, id) {
+  const options = statusOptions.map((option) => `<option value="${option}"${option === value ? " selected" : ""}>${option}</option>`).join("");
+  return `<select class="editable-field-input status-select" data-field="状态" data-account-id="${id}" aria-label="状态">${options}</select>`;
 }
 
 function renderAccounts() {
@@ -239,8 +286,8 @@ function renderAccounts() {
       return `<tr>${accountFields
         .map((field) => {
           const value = account[field] || "";
-          if (field === "账号类型") {
-            return `<td>${accountTypeInput(value, account.ID)}</td>`;
+          if (["账号类型", "平台", "绑定手机号"].includes(field)) {
+            return `<td>${editableFieldInput(field, value, account.ID)}</td>`;
           }
           if (field === "主页地址" && value) {
             return `<td><a href="${value}" target="_blank" rel="noreferrer">打开主页</a></td>`;
@@ -249,7 +296,7 @@ function renderAccounts() {
             return `<td class="masked">${maskPassword(value)}</td>`;
           }
           if (field === "状态") {
-            return `<td><span class="status">${value}</span></td>`;
+            return `<td>${statusSelect(value, account.ID)}</td>`;
           }
           return `<td>${value}</td>`;
         })
@@ -264,6 +311,16 @@ function renderDialogFields() {
     .map((field) => {
       if (field === "账号类型") {
         return `<label>${field}<input name="${field}" list="accountTypeOptions" value="${accountTypeOptions[0]}" /></label>`;
+      }
+      if (field === "平台") {
+        return `<label>${field}<input name="${field}" list="platformOptions" value="${platformOptions[0]}" /></label>`;
+      }
+      if (field === "绑定手机号") {
+        return `<label>${field}<input name="${field}" list="phoneOptions" /></label>`;
+      }
+      if (field === "状态") {
+        const options = statusOptions.map((option) => `<option value="${option}">${option}</option>`).join("");
+        return `<label>${field}<select name="${field}">${options}</select></label>`;
       }
       const type = field === "创建日期" ? "date" : field === "密码" ? "password" : "text";
       return `<label>${field}<input type="${type}" name="${field}" /></label>`;
@@ -340,15 +397,25 @@ function bindDialog() {
 
 function bindAccountTable() {
   accountRows.addEventListener("input", (event) => {
-    if (!event.target.matches(".type-input")) return;
+    if (!event.target.matches(".editable-field-input")) return;
     const account = accounts.find((item) => item.ID === event.target.dataset.accountId);
-    if (account) account.账号类型 = event.target.value;
+    if (account) account[event.target.dataset.field] = event.target.value;
+  });
+  accountRows.addEventListener("change", (event) => {
+    if (!event.target.matches(".status-select")) return;
+    const account = accounts.find((item) => item.ID === event.target.dataset.accountId);
+    if (account) account.状态 = event.target.value;
   });
 }
 
-document.body.insertAdjacentHTML("beforeend", `<datalist id="accountTypeOptions">${accountTypeOptionsMarkup()}</datalist>`);
+document.body.insertAdjacentHTML(
+  "beforeend",
+  `<datalist id="accountTypeOptions">${accountTypeOptionsMarkup()}</datalist>
+  <datalist id="platformOptions">${datalistOptionsMarkup(platformOptions)}</datalist>
+  <datalist id="phoneOptions">${datalistOptionsMarkup(phoneOptions)}</datalist>`
+);
 
-fillFilter(platformFilter, uniqueValues("平台"));
+fillFilter(platformFilter, platformOptions);
 fillFilter(ownerFilter, uniqueValues("负责人"));
 renderDialogFields();
 renderCreators();

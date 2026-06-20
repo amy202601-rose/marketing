@@ -296,10 +296,14 @@ td a {
   word-break: break-all;
 }
 
-.type-input {
+.editable-field-input {
   min-width: 210px;
   padding: 8px 10px;
   background: #fbfcfb;
+}
+
+.status-select {
+  min-width: 90px;
 }
 
 .status {
