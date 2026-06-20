@@ -53,6 +53,8 @@ const phoneOptions = [
 ];
 
 const statusOptions = ["启用", "停用"];
+const accountStorageKey = "northbridge-marketing-accounts";
+let editingAccountId = null;
 
 const accounts = [
   {
@@ -197,6 +199,15 @@ const accounts = [
   }
 ];
 
+try {
+  const savedAccounts = JSON.parse(localStorage.getItem(accountStorageKey) || "null");
+  if (Array.isArray(savedAccounts)) {
+    accounts.splice(0, accounts.length, ...savedAccounts);
+  }
+} catch (error) {
+  console.warn("Unable to load saved accounts", error);
+}
+
 const creators = [
   {
     name: "Wallace",
@@ -250,12 +261,25 @@ function maskPassword(value) {
   return "••••••••";
 }
 
+function saveAccounts() {
+  localStorage.setItem(accountStorageKey, JSON.stringify(accounts));
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function accountTypeOptionsMarkup() {
-  return accountTypeOptions.map((option) => `<option value="${option}"></option>`).join("");
+  return accountTypeOptions.map((option) => `<option value="${escapeHtml(option)}"></option>`).join("");
 }
 
 function datalistOptionsMarkup(options) {
-  return options.map((option) => `<option value="${option}"></option>`).join("");
+  return options.map((option) => `<option value="${escapeHtml(option)}"></option>`).join("");
 }
 
 function editableFieldInput(field, value, id) {
@@ -264,12 +288,48 @@ function editableFieldInput(field, value, id) {
     平台: "platformOptions",
     绑定手机号: "phoneOptions"
   };
-  return `<input class="editable-field-input" list="${listMap[field]}" data-field="${field}" data-account-id="${id}" aria-label="${field}" value="${value}" />`;
+  return `<input class="editable-field-input" list="${listMap[field]}" data-field="${field}" data-account-id="${id}" aria-label="${field}" value="${escapeHtml(value)}" />`;
 }
 
 function statusSelect(value, id) {
-  const options = statusOptions.map((option) => `<option value="${option}"${option === value ? " selected" : ""}>${option}</option>`).join("");
+  const options = statusOptions.map((option) => `<option value="${escapeHtml(option)}"${option === value ? " selected" : ""}>${escapeHtml(option)}</option>`).join("");
   return `<select class="editable-field-input status-select" data-field="状态" data-account-id="${id}" aria-label="状态">${options}</select>`;
+}
+
+function editableTextInput(field, value, id) {
+  const type = field === "创建日期" ? "date" : field === "密码" ? "password" : "text";
+  return `<input class="editable-field-input" type="${type}" data-field="${field}" data-account-id="${id}" aria-label="${field}" value="${escapeHtml(value)}" />`;
+}
+
+function renderAccountCell(account, field, isEditing) {
+  const value = account[field] || "";
+  if (field === "ID") return `<td>${escapeHtml(value)}</td>`;
+  if (isEditing && ["账号类型", "平台", "绑定手机号"].includes(field)) {
+    return `<td>${editableFieldInput(field, value, account.ID)}</td>`;
+  }
+  if (isEditing && field === "状态") {
+    return `<td>${statusSelect(value, account.ID)}</td>`;
+  }
+  if (isEditing) {
+    return `<td>${editableTextInput(field, value, account.ID)}</td>`;
+  }
+  if (field === "主页地址" && value) {
+    return `<td><a href="${escapeHtml(value)}" target="_blank" rel="noreferrer">打开主页</a></td>`;
+  }
+  if (field === "密码") {
+    return `<td class="masked">${maskPassword(value)}</td>`;
+  }
+  if (field === "状态") {
+    return `<td><span class="status">${escapeHtml(value)}</span></td>`;
+  }
+  return `<td>${escapeHtml(value)}</td>`;
+}
+
+function renderAccountActions(account, isEditing) {
+  if (isEditing) {
+    return `<td><div class="action-buttons"><button class="save-row-btn" type="button" data-account-id="${escapeHtml(account.ID)}">保存</button><button class="cancel-row-btn" type="button">取消</button></div></td>`;
+  }
+  return `<td><button class="edit-row-btn" type="button" data-account-id="${escapeHtml(account.ID)}">编辑</button></td>`;
 }
 
 function renderAccounts() {
@@ -285,24 +345,8 @@ function renderAccounts() {
   if (metricAccounts) metricAccounts.textContent = filtered.length;
   accountRows.innerHTML = filtered
     .map((account) => {
-      return `<tr>${accountFields
-        .map((field) => {
-          const value = account[field] || "";
-          if (["账号类型", "平台", "绑定手机号"].includes(field)) {
-            return `<td>${editableFieldInput(field, value, account.ID)}</td>`;
-          }
-          if (field === "主页地址" && value) {
-            return `<td><a href="${value}" target="_blank" rel="noreferrer">打开主页</a></td>`;
-          }
-          if (field === "密码") {
-            return `<td class="masked">${maskPassword(value)}</td>`;
-          }
-          if (field === "状态") {
-            return `<td>${statusSelect(value, account.ID)}</td>`;
-          }
-          return `<td>${value}</td>`;
-        })
-        .join("")}</tr>`;
+      const isEditing = account.ID === editingAccountId;
+      return `<tr class="${isEditing ? "editing-row" : ""}">${accountFields.map((field) => renderAccountCell(account, field, isEditing)).join("")}${renderAccountActions(account, isEditing)}</tr>`;
     })
     .join("");
 }
@@ -411,19 +455,54 @@ function bindDialog() {
   const addAccountBtn = document.querySelector("#addAccountBtn");
   if (!dialog || !addAccountBtn) return;
   addAccountBtn.addEventListener("click", () => dialog.showModal());
+  dialog.addEventListener("close", () => {
+    if (dialog.returnValue !== "confirm") return;
+    const form = dialog.querySelector("form");
+    if (!form) return;
+    const newAccount = {};
+    accountFields.forEach((field) => {
+      newAccount[field] = form.elements[field]?.value?.trim() || "";
+    });
+    if (!newAccount.ID) {
+      newAccount.ID = String(Date.now()).slice(-6);
+    }
+    accounts.unshift(newAccount);
+    saveAccounts();
+    form.reset();
+    renderAccounts();
+  });
 }
 
 function bindAccountTable() {
   if (!accountRows) return;
-  accountRows.addEventListener("input", (event) => {
-    if (!event.target.matches(".editable-field-input")) return;
-    const account = accounts.find((item) => item.ID === event.target.dataset.accountId);
-    if (account) account[event.target.dataset.field] = event.target.value;
-  });
-  accountRows.addEventListener("change", (event) => {
-    if (!event.target.matches(".status-select")) return;
-    const account = accounts.find((item) => item.ID === event.target.dataset.accountId);
-    if (account) account.状态 = event.target.value;
+  accountRows.addEventListener("click", (event) => {
+    const editButton = event.target.closest(".edit-row-btn");
+    const saveButton = event.target.closest(".save-row-btn");
+    const cancelButton = event.target.closest(".cancel-row-btn");
+
+    if (editButton) {
+      editingAccountId = editButton.dataset.accountId;
+      renderAccounts();
+      return;
+    }
+
+    if (cancelButton) {
+      editingAccountId = null;
+      renderAccounts();
+      return;
+    }
+
+    if (saveButton) {
+      const account = accounts.find((item) => item.ID === saveButton.dataset.accountId);
+      const row = saveButton.closest("tr");
+      if (!account || !row) return;
+      row.querySelectorAll(".editable-field-input").forEach((input) => {
+        account[input.dataset.field] = input.value;
+      });
+      saveAccounts();
+      editingAccountId = null;
+      renderAccounts();
+    }
   });
 }
 

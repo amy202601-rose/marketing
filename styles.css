@@ -330,6 +330,10 @@ td {
   font-size: 14px;
 }
 
+tbody tr.editing-row {
+  background: #f7fbfa;
+}
+
 th {
   position: sticky;
   top: 0;
@@ -351,6 +355,35 @@ td a {
 
 .status-select {
   min-width: 90px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  min-width: 120px;
+}
+
+.edit-row-btn,
+.save-row-btn,
+.cancel-row-btn {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 8px 11px;
+  cursor: pointer;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.save-row-btn {
+  border-color: var(--green);
+  background: var(--green);
+  color: #fff;
+}
+
+.cancel-row-btn {
+  color: var(--muted);
 }
 
 .status {
