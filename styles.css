@@ -296,6 +296,12 @@ td a {
   word-break: break-all;
 }
 
+.type-select {
+  min-width: 210px;
+  padding: 8px 10px;
+  background: #fbfcfb;
+}
+
 .status {
   display: inline-block;
   min-width: 42px;

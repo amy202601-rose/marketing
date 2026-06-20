@@ -1,9 +1,30 @@
 const accountFields = ["ID", "账号类型", "平台", "账号名称", "主页地址", "绑定手机号", "用户名", "密码", "负责人", "备注", "状态", "创建日期"];
 
+const accountTypeOptions = [
+  "加拿大Wallace（主号中文）",
+  "wallacewang.ca（主号英文）",
+  "YouTube长视频",
+  "昊式干货局（哔哩哔哩）",
+  "小红书聚光",
+  "昊哥在加拿大（知识切片）",
+  "Wallace的认知圈（视频日记）",
+  "Banff单板王老师（滑雪号）",
+  "卡尔加里高尔夫小昊",
+  "宥宥",
+  "何姐的退休生活",
+  "何氏鼻",
+  "何苑风景",
+  "ToDesk",
+  "网站",
+  "邮箱",
+  "AppleID",
+  "其他"
+];
+
 const accounts = [
   {
     ID: "10",
-    账号类型: "品牌内容号",
+    账号类型: "Banff单板王老师（滑雪号）",
     平台: "小红书",
     账号名称: "Finance Canada Notes",
     主页地址: "https://example.com/xhs/finance-canada-notes",
@@ -17,7 +38,7 @@ const accounts = [
   },
   {
     ID: "11",
-    账号类型: "品牌内容号",
+    账号类型: "Banff单板王老师（滑雪号）",
     平台: "抖音",
     账号名称: "Finance Canada Notes",
     主页地址: "https://example.com/douyin/finance-canada-notes",
@@ -31,7 +52,7 @@ const accounts = [
   },
   {
     ID: "480001",
-    账号类型: "远程协作工具",
+    账号类型: "ToDesk",
     平台: "其他",
     账号名称: "运营电脑远程协作账号",
     主页地址: "",
@@ -45,7 +66,7 @@ const accounts = [
   },
   {
     ID: "3",
-    账号类型: "英文品牌主号",
+    账号类型: "wallacewang.ca（主号英文）",
     平台: "Facebook",
     账号名称: "",
     主页地址: "https://example.com/facebook/brand",
@@ -59,7 +80,7 @@ const accounts = [
   },
   {
     ID: "1",
-    账号类型: "英文品牌主号",
+    账号类型: "wallacewang.ca（主号英文）",
     平台: "TikTok",
     账号名称: "northbridge.finance",
     主页地址: "https://example.com/tiktok/brand",
@@ -73,7 +94,7 @@ const accounts = [
   },
   {
     ID: "120001",
-    账号类型: "英文品牌主号",
+    账号类型: "wallacewang.ca（主号英文）",
     平台: "Instagram",
     账号名称: "northbridge.finance",
     主页地址: "https://example.com/instagram/brand",
@@ -87,7 +108,7 @@ const accounts = [
   },
   {
     ID: "4",
-    账号类型: "英文品牌主号",
+    账号类型: "YouTube长视频",
     平台: "YouTube Shorts",
     账号名称: "NorthBridge Finance",
     主页地址: "https://example.com/youtube/brand-shorts",
@@ -101,7 +122,7 @@ const accounts = [
   },
   {
     ID: "660001",
-    账号类型: "中文品牌主号",
+    账号类型: "加拿大Wallace（主号中文）",
     平台: "小红书",
     账号名称: "北桥金融加拿大",
     主页地址: "https://example.com/xhs/chinese-brand",
@@ -115,7 +136,7 @@ const accounts = [
   },
   {
     ID: "870001",
-    账号类型: "中文品牌主号",
+    账号类型: "加拿大Wallace（主号中文）",
     平台: "抖音",
     账号名称: "北桥金融加拿大",
     主页地址: "https://example.com/douyin/chinese-brand",
@@ -129,7 +150,7 @@ const accounts = [
   },
   {
     ID: "420002",
-    账号类型: "中文品牌主号",
+    账号类型: "加拿大Wallace（主号中文）",
     平台: "视频号",
     账号名称: "NorthBridge Canada",
     主页地址: "https://example.com/wechat/channels",
@@ -195,6 +216,13 @@ function maskPassword(value) {
   return "••••••••";
 }
 
+function accountTypeSelect(value, id) {
+  const options = accountTypeOptions
+    .map((option) => `<option value="${option}"${option === value ? " selected" : ""}>${option}</option>`)
+    .join("");
+  return `<select class="type-select" data-account-id="${id}" aria-label="账号类型">${options}</select>`;
+}
+
 function renderAccounts() {
   const term = accountSearch.value.trim().toLowerCase();
   const platform = platformFilter.value;
@@ -210,6 +238,9 @@ function renderAccounts() {
       return `<tr>${accountFields
         .map((field) => {
           const value = account[field] || "";
+          if (field === "账号类型") {
+            return `<td>${accountTypeSelect(value, account.ID)}</td>`;
+          }
           if (field === "主页地址" && value) {
             return `<td><a href="${value}" target="_blank" rel="noreferrer">打开主页</a></td>`;
           }
@@ -230,6 +261,10 @@ function renderDialogFields() {
   const fieldWrap = document.querySelector("#accountFields");
   fieldWrap.innerHTML = accountFields
     .map((field) => {
+      if (field === "账号类型") {
+        const options = accountTypeOptions.map((option) => `<option value="${option}">${option}</option>`).join("");
+        return `<label>${field}<select name="${field}">${options}</select></label>`;
+      }
       const type = field === "创建日期" ? "date" : field === "密码" ? "password" : "text";
       return `<label>${field}<input type="${type}" name="${field}" /></label>`;
     })
@@ -303,6 +338,14 @@ function bindDialog() {
   document.querySelector("#addAccountBtn").addEventListener("click", () => dialog.showModal());
 }
 
+function bindAccountTable() {
+  accountRows.addEventListener("change", (event) => {
+    if (!event.target.matches(".type-select")) return;
+    const account = accounts.find((item) => item.ID === event.target.dataset.accountId);
+    if (account) account.账号类型 = event.target.value;
+  });
+}
+
 fillFilter(platformFilter, uniqueValues("平台"));
 fillFilter(ownerFilter, uniqueValues("负责人"));
 renderDialogFields();
@@ -311,6 +354,7 @@ renderAccounts();
 bindTraining();
 bindLogs();
 bindDialog();
+bindAccountTable();
 generateContent();
 
 accountSearch.addEventListener("input", renderAccounts);
