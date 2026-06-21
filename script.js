@@ -148,7 +148,7 @@ const accounts = [
     ID: "4",
     账号类型: "YouTube长视频",
     平台: "YouTube",
-    账号名称: "NorthBridge Finance",
+    账号名称: "Wallace Financial Service",
     主页地址: "https://example.com/youtube/brand-shorts",
     绑定手机号: "",
     用户名: "demo-youtube-login",

@@ -52,6 +52,8 @@ a {
   padding: 22px 18px;
   background: #101816;
   color: #f8fbf8;
+  display: flex;
+  flex-direction: column;
 }
 
 .brand {
@@ -63,12 +65,13 @@ a {
 
 .brand-mark {
   display: grid;
-  width: 44px;
+  width: 50px;
   height: 44px;
   place-items: center;
   border-radius: 8px;
   background: var(--coral);
   color: #fff;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -100,6 +103,22 @@ a {
   color: #fff;
 }
 
+.logout-btn {
+  margin-top: auto;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8fbf8;
+  cursor: pointer;
+  padding: 11px 12px;
+  text-align: left;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .main {
   min-width: 0;
   padding: 24px;
@@ -120,6 +139,71 @@ a {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.login-page {
+  min-height: 100vh;
+  background:
+    linear-gradient(90deg, rgba(16, 24, 22, 0.82), rgba(16, 24, 22, 0.38)),
+    url("assets/marketing-ops-hero.png") center / cover no-repeat;
+}
+
+.login-shell {
+  display: grid;
+  min-height: 100vh;
+  align-items: center;
+  padding: 32px;
+}
+
+.login-panel {
+  width: min(440px, 100%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow);
+  padding: 28px;
+}
+
+.login-brand {
+  margin-bottom: 34px;
+  color: var(--ink);
+}
+
+.login-brand small {
+  color: var(--muted);
+}
+
+.login-copy p {
+  margin: 0 0 8px;
+  color: var(--green);
+}
+
+.login-copy h1 {
+  margin: 0 0 26px;
+  font-size: 34px;
+}
+
+.login-form {
+  display: grid;
+  gap: 16px;
+}
+
+.login-form label {
+  display: grid;
+  gap: 7px;
+  color: #34433e;
+  font-weight: 700;
+}
+
+.login-form input {
+  width: 100%;
+}
+
+.login-error {
+  min-height: 20px;
+  margin: 0;
+  color: #a33b2e;
+  font-weight: 700;
 }
 
 .hero-section::after {
