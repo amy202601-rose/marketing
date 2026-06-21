@@ -416,6 +416,9 @@ function editableTextInput(field, value, id) {
 
 function renderAccountCell(account, field, isEditing) {
   const value = account[field] || "";
+  if (field === "ID" && isEditing) {
+    return `<td>${editableTextInput(field, value, account.ID)}</td>`;
+  }
   if (field === "ID") return `<td>${escapeHtml(value)}</td>`;
   if (isEditing && field === "平台") {
     return `<td>${platformCombo(value, account.ID)}</td>`;
@@ -669,12 +672,22 @@ function bindAccountTable() {
     }
 
     if (saveButton) {
-      const account = accounts.find((item) => item.ID === saveButton.dataset.accountId);
+      const originalId = saveButton.dataset.accountId;
+      const account = accounts.find((item) => item.ID === originalId);
       const row = saveButton.closest("tr");
       if (!account || !row) return;
+      const idInput = row.querySelector('.editable-field-input[data-field="ID"]');
+      const nextId = idInput?.value?.trim() || originalId;
+      const duplicate = accounts.some((item) => item !== account && item.ID === nextId);
+      if (duplicate) {
+        alert("这个 ID 已经存在，请换一个 ID。");
+        idInput?.focus();
+        return;
+      }
       row.querySelectorAll(".editable-field-input").forEach((input) => {
         account[input.dataset.field] = input.value;
       });
+      account.ID = nextId;
       syncCustomOptionsFromAccount(account);
       saveAccounts();
       refreshPlatformFilter();
