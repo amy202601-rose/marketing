@@ -52,8 +52,11 @@ const phoneOptions = [
   "13624179333 孟静"
 ];
 
+const ownerOptions = ["Amy", "Wallace"];
+
 const statusOptions = ["启用", "停用"];
 const accountStorageKey = "northbridge-marketing-accounts";
+const optionStorageKey = "northbridge-marketing-option-lists";
 let editingAccountId = null;
 
 const accounts = [
@@ -201,11 +204,35 @@ const accounts = [
 
 try {
   const savedAccounts = JSON.parse(localStorage.getItem(accountStorageKey) || "null");
-  if (Array.isArray(savedAccounts)) {
+  const savedAccountsAreUsable =
+    Array.isArray(savedAccounts) &&
+    savedAccounts.length > 0 &&
+    savedAccounts.every((account) => account && typeof account === "object" && accountFields.every((field) => Object.prototype.hasOwnProperty.call(account, field)));
+  if (savedAccountsAreUsable) {
     accounts.splice(0, accounts.length, ...savedAccounts);
   }
 } catch (error) {
   console.warn("Unable to load saved accounts", error);
+}
+
+try {
+  const savedOptions = JSON.parse(localStorage.getItem(optionStorageKey) || "null");
+  if (savedOptions && typeof savedOptions === "object") {
+    [
+      ["账号类型", accountTypeOptions],
+      ["平台", platformOptions],
+      ["绑定手机号", phoneOptions],
+      ["负责人", ownerOptions]
+    ].forEach(([field, options]) => {
+      if (!Array.isArray(savedOptions[field])) return;
+      savedOptions[field].forEach((value) => {
+        const cleanValue = String(value || "").trim();
+        if (cleanValue && !options.includes(cleanValue)) options.push(cleanValue);
+      });
+    });
+  }
+} catch (error) {
+  console.warn("Unable to load saved option lists", error);
 }
 
 const creators = [
@@ -265,6 +292,69 @@ function saveAccounts() {
   localStorage.setItem(accountStorageKey, JSON.stringify(accounts));
 }
 
+function saveOptionLists() {
+  localStorage.setItem(
+    optionStorageKey,
+    JSON.stringify({
+      账号类型: accountTypeOptions,
+      平台: platformOptions,
+      绑定手机号: phoneOptions,
+      负责人: ownerOptions
+    })
+  );
+}
+
+function optionsForField(field) {
+  return {
+    账号类型: accountTypeOptions,
+    平台: platformOptions,
+    绑定手机号: phoneOptions,
+    负责人: ownerOptions
+  }[field];
+}
+
+function addCustomOption(field, value) {
+  const options = optionsForField(field);
+  const cleanValue = String(value || "").trim();
+  if (!options || !cleanValue || options.includes(cleanValue)) return false;
+  options.push(cleanValue);
+  saveOptionLists();
+  return true;
+}
+
+function removeOption(field, value) {
+  const options = optionsForField(field);
+  const cleanValue = String(value || "").trim();
+  if (!options || !cleanValue) return false;
+  const index = options.indexOf(cleanValue);
+  if (index === -1) return false;
+  options.splice(index, 1);
+  saveOptionLists();
+  if (field === "平台") refreshPlatformFilter();
+  if (field === "负责人") refreshOwnerFilter();
+  return true;
+}
+
+function syncCustomOptionsFromAccount(account) {
+  ["账号类型", "平台", "绑定手机号", "负责人"].forEach((field) => addCustomOption(field, account[field]));
+}
+
+function refreshPlatformFilter() {
+  if (!platformFilter) return;
+  const currentValue = platformFilter.value;
+  platformFilter.innerHTML = `<option value="all">全部平台</option>`;
+  fillFilter(platformFilter, platformOptions);
+  platformFilter.value = platformOptions.includes(currentValue) ? currentValue : "all";
+}
+
+function refreshOwnerFilter() {
+  if (!ownerFilter) return;
+  const currentValue = ownerFilter.value;
+  ownerFilter.innerHTML = `<option value="all">全部负责人</option>`;
+  fillFilter(ownerFilter, ownerOptions);
+  ownerFilter.value = ownerOptions.includes(currentValue) ? currentValue : "all";
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -282,17 +372,36 @@ function datalistOptionsMarkup(options) {
   return options.map((option) => `<option value="${escapeHtml(option)}"></option>`).join("");
 }
 
-function editableFieldInput(field, value, id) {
-  const listMap = {
-    账号类型: "accountTypeOptions",
-    绑定手机号: "phoneOptions"
-  };
-  return `<input class="editable-field-input" list="${listMap[field]}" data-field="${field}" data-account-id="${id}" aria-label="${field}" value="${escapeHtml(value)}" />`;
+function optionCombo(field, value, id = "", name = "", optionsList = []) {
+  const options = optionsList
+    .map(
+      (option) => `<div class="combo-option-row" data-value="${escapeHtml(option)}">
+        <button class="combo-option" type="button" data-value="${escapeHtml(option)}">${escapeHtml(option)}</button>
+        <button class="combo-delete" type="button" data-value="${escapeHtml(option)}" aria-label="删除 ${escapeHtml(option)}">删除</button>
+      </div>`
+    )
+    .join("");
+  return `<div class="editable-combo" data-field="${escapeHtml(field)}">
+    <input class="editable-field-input combo-input" ${name ? `name="${escapeHtml(name)}"` : ""} data-field="${escapeHtml(field)}" data-account-id="${escapeHtml(id)}" aria-label="${escapeHtml(field)}" value="${escapeHtml(value)}" />
+    <button class="combo-toggle" type="button" aria-label="展开${escapeHtml(field)}选项">⌄</button>
+    <div class="combo-menu" role="listbox">${options}</div>
+  </div>`;
 }
 
-function platformSelect(value, id) {
-  const options = platformOptions.map((option) => `<option value="${escapeHtml(option)}"${option === value ? " selected" : ""}>${escapeHtml(option)}</option>`).join("");
-  return `<select class="editable-field-input option-select" data-field="平台" data-account-id="${id}" aria-label="平台">${options}</select>`;
+function accountTypeCombo(value, id = "", name = "") {
+  return optionCombo("账号类型", value, id, name, accountTypeOptions);
+}
+
+function phoneCombo(value, id = "", name = "") {
+  return optionCombo("绑定手机号", value, id, name, phoneOptions);
+}
+
+function platformCombo(value, id = "", name = "") {
+  return optionCombo("平台", value, id, name, platformOptions);
+}
+
+function ownerCombo(value, id = "", name = "") {
+  return optionCombo("负责人", value, id, name, ownerOptions);
 }
 
 function statusSelect(value, id) {
@@ -309,10 +418,16 @@ function renderAccountCell(account, field, isEditing) {
   const value = account[field] || "";
   if (field === "ID") return `<td>${escapeHtml(value)}</td>`;
   if (isEditing && field === "平台") {
-    return `<td>${platformSelect(value, account.ID)}</td>`;
+    return `<td>${platformCombo(value, account.ID)}</td>`;
   }
-  if (isEditing && ["账号类型", "绑定手机号"].includes(field)) {
-    return `<td>${editableFieldInput(field, value, account.ID)}</td>`;
+  if (isEditing && field === "账号类型") {
+    return `<td>${accountTypeCombo(value, account.ID)}</td>`;
+  }
+  if (isEditing && field === "绑定手机号") {
+    return `<td>${phoneCombo(value, account.ID)}</td>`;
+  }
+  if (isEditing && field === "负责人") {
+    return `<td>${ownerCombo(value, account.ID)}</td>`;
   }
   if (isEditing && field === "状态") {
     return `<td>${statusSelect(value, account.ID)}</td>`;
@@ -350,6 +465,10 @@ function renderAccounts() {
   });
 
   if (metricAccounts) metricAccounts.textContent = filtered.length;
+  if (filtered.length === 0) {
+    accountRows.innerHTML = `<tr><td class="empty-table-cell" colspan="${accountFields.length + 1}">没有符合条件的账号记录。请清空搜索条件，或点击“新增账号”。</td></tr>`;
+    return;
+  }
   accountRows.innerHTML = filtered
     .map((account) => {
       const isEditing = account.ID === editingAccountId;
@@ -364,14 +483,16 @@ function renderDialogFields() {
   fieldWrap.innerHTML = accountFields
     .map((field) => {
       if (field === "账号类型") {
-        return `<label>${field}<input name="${field}" list="accountTypeOptions" value="${accountTypeOptions[0]}" /></label>`;
+        return `<label>${field}${accountTypeCombo(accountTypeOptions[0], "new-account", field)}</label>`;
       }
       if (field === "平台") {
-        const options = platformOptions.map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join("");
-        return `<label>${field}<select name="${field}">${options}</select></label>`;
+        return `<label>${field}${platformCombo(platformOptions[0], "new-account", field)}</label>`;
       }
       if (field === "绑定手机号") {
-        return `<label>${field}<input name="${field}" list="phoneOptions" /></label>`;
+        return `<label>${field}${phoneCombo("", "new-account", field)}</label>`;
+      }
+      if (field === "负责人") {
+        return `<label>${field}${ownerCombo(ownerOptions[0], "new-account", field)}</label>`;
       }
       if (field === "状态") {
         const options = statusOptions.map((option) => `<option value="${option}">${option}</option>`).join("");
@@ -475,9 +596,56 @@ function bindDialog() {
       newAccount.ID = String(Date.now()).slice(-6);
     }
     accounts.unshift(newAccount);
+    syncCustomOptionsFromAccount(newAccount);
     saveAccounts();
     form.reset();
+    renderDialogFields();
+    refreshPlatformFilter();
+    refreshOwnerFilter();
     renderAccounts();
+  });
+}
+
+function handleComboClick(event) {
+    const comboToggle = event.target.closest(".combo-toggle");
+    const comboDelete = event.target.closest(".combo-delete");
+    const comboOption = event.target.closest(".combo-option");
+
+    if (comboToggle) {
+      const combo = comboToggle.closest(".editable-combo");
+      document.querySelectorAll(".editable-combo.open").forEach((item) => {
+        if (item !== combo) item.classList.remove("open");
+      });
+      combo?.classList.toggle("open");
+      return true;
+    }
+
+    if (comboDelete) {
+      const combo = comboDelete.closest(".editable-combo");
+      const field = combo?.dataset.field;
+      const value = comboDelete.dataset.value || "";
+      if (field && removeOption(field, value)) {
+        comboDelete.closest(".combo-option-row")?.remove();
+      }
+      return true;
+    }
+
+    if (comboOption) {
+      const combo = comboOption.closest(".editable-combo");
+      const input = combo?.querySelector(".combo-input");
+      if (input) input.value = comboOption.dataset.value || comboOption.textContent.trim();
+      combo?.classList.remove("open");
+      return true;
+    }
+
+    return false;
+}
+
+function bindComboMenus() {
+  document.addEventListener("click", (event) => {
+    if (handleComboClick(event)) return;
+    if (event.target.closest(".editable-combo")) return;
+    document.querySelectorAll(".editable-combo.open").forEach((item) => item.classList.remove("open"));
   });
 }
 
@@ -507,7 +675,10 @@ function bindAccountTable() {
       row.querySelectorAll(".editable-field-input").forEach((input) => {
         account[input.dataset.field] = input.value;
       });
+      syncCustomOptionsFromAccount(account);
       saveAccounts();
+      refreshPlatformFilter();
+      refreshOwnerFilter();
       editingAccountId = null;
       renderAccounts();
     }
@@ -516,18 +687,18 @@ function bindAccountTable() {
 
 document.body.insertAdjacentHTML(
   "beforeend",
-  `<datalist id="accountTypeOptions">${accountTypeOptionsMarkup()}</datalist>
-  <datalist id="phoneOptions">${datalistOptionsMarkup(phoneOptions)}</datalist>`
+  `<datalist id="accountTypeOptions">${accountTypeOptionsMarkup()}</datalist>`
 );
 
-fillFilter(platformFilter, platformOptions);
-fillFilter(ownerFilter, uniqueValues("负责人"));
+refreshPlatformFilter();
+refreshOwnerFilter();
 renderDialogFields();
 renderCreators();
 renderAccounts();
 bindTraining();
 bindLogs();
 bindDialog();
+bindComboMenus();
 bindAccountTable();
 generateContent();
 

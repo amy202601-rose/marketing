@@ -334,6 +334,12 @@ tbody tr.editing-row {
   background: #f7fbfa;
 }
 
+.empty-table-cell {
+  padding: 28px 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
 th {
   position: sticky;
   top: 0;
@@ -351,6 +357,104 @@ td a {
   min-width: 210px;
   padding: 8px 10px;
   background: #fbfcfb;
+}
+
+.editable-combo {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  width: 260px;
+  max-width: 100%;
+}
+
+.editable-combo .combo-input {
+  min-width: 0;
+  width: 100%;
+  border-radius: 8px 0 0 8px;
+}
+
+.combo-toggle {
+  width: 42px;
+  border: 1px solid var(--line);
+  border-left: 0;
+  border-radius: 0 8px 8px 0;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.combo-menu {
+  display: none;
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  left: 0;
+  width: min(360px, 80vw);
+  max-height: 280px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  padding: 6px;
+}
+
+.editable-combo.open .combo-menu {
+  display: grid;
+  gap: 3px;
+}
+
+.combo-option-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px;
+  border-radius: 6px;
+}
+
+.combo-option-row:hover {
+  background: #edf3ef;
+}
+
+.combo-option {
+  width: 100%;
+  border: 0;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 9px 10px;
+  text-align: left;
+}
+
+.combo-option-row:hover .combo-option {
+  background: transparent;
+}
+
+.combo-delete {
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #9a3d2c;
+  cursor: pointer;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.combo-delete:hover {
+  background: #fdebe7;
+}
+
+td .editable-combo > .combo-menu,
+.dialog-card .editable-combo > .combo-menu {
+  display: none !important;
+  position: absolute !important;
+  z-index: 20 !important;
+}
+
+td .editable-combo.open > .combo-menu,
+.dialog-card .editable-combo.open > .combo-menu {
+  display: grid !important;
 }
 
 .option-select {
