@@ -457,15 +457,28 @@ function renderAccountActions(account, isEditing) {
   return `<td><button class="edit-row-btn" type="button" data-account-id="${escapeHtml(account.ID)}">编辑</button></td>`;
 }
 
+function sortById(left, right) {
+  const leftId = String(left.ID || "").trim();
+  const rightId = String(right.ID || "").trim();
+  const leftNumber = Number(leftId);
+  const rightNumber = Number(rightId);
+  if (Number.isFinite(leftNumber) && Number.isFinite(rightNumber)) {
+    return leftNumber - rightNumber;
+  }
+  return leftId.localeCompare(rightId, "zh-CN", { numeric: true, sensitivity: "base" });
+}
+
 function renderAccounts() {
   if (!accountRows || !accountSearch || !platformFilter || !ownerFilter) return;
   const term = accountSearch.value.trim().toLowerCase();
   const platform = platformFilter.value;
   const owner = ownerFilter.value;
-  const filtered = accounts.filter((account) => {
-    const haystack = accountFields.map((field) => account[field]).join(" ").toLowerCase();
-    return (platform === "all" || account.平台 === platform) && (owner === "all" || account.负责人 === owner) && haystack.includes(term);
-  });
+  const filtered = accounts
+    .filter((account) => {
+      const haystack = accountFields.map((field) => account[field]).join(" ").toLowerCase();
+      return (platform === "all" || account.平台 === platform) && (owner === "all" || account.负责人 === owner) && haystack.includes(term);
+    })
+    .sort(sortById);
 
   if (metricAccounts) metricAccounts.textContent = filtered.length;
   if (filtered.length === 0) {
