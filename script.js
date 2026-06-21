@@ -410,7 +410,7 @@ function statusSelect(value, id) {
 }
 
 function editableTextInput(field, value, id) {
-  const type = field === "创建日期" ? "date" : field === "密码" ? "password" : "text";
+  const type = field === "创建日期" ? "date" : "text";
   return `<input class="editable-field-input" type="${type}" data-field="${field}" data-account-id="${id}" aria-label="${field}" value="${escapeHtml(value)}" />`;
 }
 
