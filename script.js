@@ -514,7 +514,7 @@ function renderDialogFields() {
         const options = statusOptions.map((option) => `<option value="${option}">${option}</option>`).join("");
         return `<label>${field}<select name="${field}">${options}</select></label>`;
       }
-      const type = field === "创建日期" ? "date" : field === "密码" ? "password" : "text";
+      const type = field === "创建日期" ? "date" : "text";
       return `<label>${field}<input type="${type}" name="${field}" /></label>`;
     })
     .join("");
