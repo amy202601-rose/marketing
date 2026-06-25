@@ -2,6 +2,8 @@
   const allowedUser = "amy.he@wallacewang.ca";
   const passwordHash = "23f525651e03fc6ff3392f8574903ea336c1e3c35db73ce2532dbbd19a9839da";
   const sessionKey = "northbridge-marketing-auth-session";
+  const backendTokenKey = "wfs-marketing-backend-token";
+  const backendConfig = window.WFS_BACKEND_CONFIG || {};
   const sessionHours = 12;
   const isLoginPage = /(^|\/)login\.html$/.test(window.location.pathname);
 
@@ -34,8 +36,36 @@
     return [...new Uint8Array(hash)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
   }
 
+  function backendEnabled() {
+    return Boolean(backendConfig.enabled && backendConfig.apiBaseUrl);
+  }
+
+  function apiUrl(path) {
+    return `${backendConfig.apiBaseUrl.replace(/\/$/, "")}${path}`;
+  }
+
   async function signIn(user, password) {
     const normalizedUser = String(user || "").trim().toLowerCase();
+    if (backendEnabled()) {
+      const response = await fetch(apiUrl("/api/login"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user: normalizedUser, password: String(password || "") })
+      });
+      if (!response.ok) return false;
+      const data = await response.json();
+      if (!data.token) return false;
+      localStorage.setItem(backendTokenKey, data.token);
+      localStorage.setItem(
+        sessionKey,
+        JSON.stringify({
+          user: allowedUser,
+          expiresAt: Date.now() + sessionHours * 60 * 60 * 1000
+        })
+      );
+      return true;
+    }
+
     const enteredHash = await sha256(String(password || ""));
     if (normalizedUser !== allowedUser || enteredHash !== passwordHash) return false;
     localStorage.setItem(
@@ -50,6 +80,7 @@
 
   function signOut() {
     localStorage.removeItem(sessionKey);
+    localStorage.removeItem(backendTokenKey);
     window.location.href = "login.html";
   }
 

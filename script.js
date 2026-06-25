@@ -57,7 +57,9 @@ const ownerOptions = ["Amy", "Wallace"];
 const statusOptions = ["启用", "停用"];
 const accountStorageKey = "northbridge-marketing-accounts";
 const optionStorageKey = "northbridge-marketing-option-lists";
+const backendConfig = window.WFS_BACKEND_CONFIG || {};
 let editingAccountId = null;
+let syncingBackend = false;
 
 const accounts = [
   {
@@ -202,35 +204,45 @@ const accounts = [
   }
 ];
 
-try {
-  const savedAccounts = JSON.parse(localStorage.getItem(accountStorageKey) || "null");
+function applySavedAccounts(savedAccounts) {
   const savedAccountsAreUsable =
     Array.isArray(savedAccounts) &&
     savedAccounts.length > 0 &&
     savedAccounts.every((account) => account && typeof account === "object" && accountFields.every((field) => Object.prototype.hasOwnProperty.call(account, field)));
   if (savedAccountsAreUsable) {
     accounts.splice(0, accounts.length, ...savedAccounts);
+    return true;
   }
+  return false;
+}
+
+function applySavedOptionLists(savedOptions) {
+  if (!savedOptions || typeof savedOptions !== "object") return false;
+  [
+    ["账号类型", accountTypeOptions],
+    ["平台", platformOptions],
+    ["绑定手机号", phoneOptions],
+    ["负责人", ownerOptions]
+  ].forEach(([field, options]) => {
+    if (!Array.isArray(savedOptions[field])) return;
+    savedOptions[field].forEach((value) => {
+      const cleanValue = String(value || "").trim();
+      if (cleanValue && !options.includes(cleanValue)) options.push(cleanValue);
+    });
+  });
+  return true;
+}
+
+try {
+  const savedAccounts = JSON.parse(localStorage.getItem(accountStorageKey) || "null");
+  applySavedAccounts(savedAccounts);
 } catch (error) {
   console.warn("Unable to load saved accounts", error);
 }
 
 try {
   const savedOptions = JSON.parse(localStorage.getItem(optionStorageKey) || "null");
-  if (savedOptions && typeof savedOptions === "object") {
-    [
-      ["账号类型", accountTypeOptions],
-      ["平台", platformOptions],
-      ["绑定手机号", phoneOptions],
-      ["负责人", ownerOptions]
-    ].forEach(([field, options]) => {
-      if (!Array.isArray(savedOptions[field])) return;
-      savedOptions[field].forEach((value) => {
-        const cleanValue = String(value || "").trim();
-        if (cleanValue && !options.includes(cleanValue)) options.push(cleanValue);
-      });
-    });
-  }
+  applySavedOptionLists(savedOptions);
 } catch (error) {
   console.warn("Unable to load saved option lists", error);
 }
@@ -288,20 +300,95 @@ function maskPassword(value) {
   return "••••••••";
 }
 
+function backendEnabled() {
+  return Boolean(backendConfig.enabled && backendConfig.apiBaseUrl);
+}
+
+function apiUrl(path) {
+  return `${backendConfig.apiBaseUrl.replace(/\/$/, "")}${path}`;
+}
+
+function backendToken() {
+  return localStorage.getItem("wfs-marketing-backend-token") || "";
+}
+
+function backendHeaders() {
+  return {
+    Authorization: `Bearer ${backendToken()}`,
+    "Content-Type": "application/json"
+  };
+}
+
+function optionListsSnapshot() {
+  return {
+    账号类型: accountTypeOptions,
+    平台: platformOptions,
+    绑定手机号: phoneOptions,
+    负责人: ownerOptions
+  };
+}
+
+async function saveBackendRecords(records, force = false) {
+  if (!backendEnabled() || (syncingBackend && !force)) return;
+  const response = await fetch(apiUrl("/api/data"), {
+    method: "PUT",
+    headers: backendHeaders(),
+    body: JSON.stringify({
+      accounts,
+      optionLists: optionListsSnapshot(),
+      ...records
+    })
+  });
+  if (!response.ok) {
+    throw new Error(`Backend save failed: ${response.status}`);
+  }
+}
+
+async function loadBackendRecords() {
+  if (!backendEnabled() || !accountRows) return;
+  try {
+    syncingBackend = true;
+    const response = await fetch(apiUrl("/api/data"), {
+      headers: backendHeaders()
+    });
+    if (!response.ok) {
+      throw new Error(`Backend load failed: ${response.status}`);
+    }
+    const data = await response.json();
+    const hasCloudAccounts = applySavedAccounts(data.accounts);
+    const hasCloudOptions = applySavedOptionLists(data.optionLists);
+
+    if (hasCloudAccounts) {
+      localStorage.setItem(accountStorageKey, JSON.stringify(accounts));
+    }
+    if (hasCloudOptions) {
+      localStorage.setItem(optionStorageKey, JSON.stringify(optionListsSnapshot()));
+    }
+    if (!hasCloudAccounts) {
+      await saveBackendRecords({
+        accounts,
+        optionLists: optionListsSnapshot()
+      }, true);
+    }
+  } catch (error) {
+    console.warn("Unable to sync backend records", error);
+  } finally {
+    syncingBackend = false;
+    refreshPlatformFilter();
+    refreshOwnerFilter();
+    renderAccounts();
+  }
+}
+
 function saveAccounts() {
   localStorage.setItem(accountStorageKey, JSON.stringify(accounts));
+  saveBackendRecords({ accounts }).catch((error) => console.warn("Unable to save backend accounts", error));
 }
 
 function saveOptionLists() {
-  localStorage.setItem(
-    optionStorageKey,
-    JSON.stringify({
-      账号类型: accountTypeOptions,
-      平台: platformOptions,
-      绑定手机号: phoneOptions,
-      负责人: ownerOptions
-    })
-  );
+  const optionLists = optionListsSnapshot();
+  localStorage.setItem(optionStorageKey, JSON.stringify(optionLists));
+  saveBackendRecords({ optionLists }).catch((error) => console.warn("Unable to save backend option lists", error));
 }
 
 function optionsForField(field) {
@@ -733,3 +820,4 @@ if (platformFilter) platformFilter.addEventListener("change", renderAccounts);
 if (ownerFilter) ownerFilter.addEventListener("change", renderAccounts);
 const generateBtn = document.querySelector("#generateBtn");
 if (generateBtn) generateBtn.addEventListener("click", generateContent);
+loadBackendRecords();
