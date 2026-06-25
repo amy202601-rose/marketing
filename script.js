@@ -595,6 +595,109 @@ function exportAccountsToExcel() {
   URL.revokeObjectURL(url);
 }
 
+function normalizeImportedAccount(rawAccount) {
+  const account = {};
+  accountFields.forEach((field) => {
+    account[field] = String(rawAccount[field] || "").trim();
+  });
+  if (!account.ID) account.ID = String(Date.now()).slice(-6);
+  return account;
+}
+
+function parseDelimitedRows(text) {
+  const rows = [];
+  let row = [];
+  let value = "";
+  let inQuotes = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    const next = text[index + 1];
+    if (char === '"' && inQuotes && next === '"') {
+      value += '"';
+      index += 1;
+      continue;
+    }
+    if (char === '"') {
+      inQuotes = !inQuotes;
+      continue;
+    }
+    if (char === "," && !inQuotes) {
+      row.push(value);
+      value = "";
+      continue;
+    }
+    if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (char === "\r" && next === "\n") index += 1;
+      row.push(value);
+      if (row.some((cell) => cell.trim())) rows.push(row);
+      row = [];
+      value = "";
+      continue;
+    }
+    value += char;
+  }
+
+  row.push(value);
+  if (row.some((cell) => cell.trim())) rows.push(row);
+  return rows;
+}
+
+function rowsToAccounts(rows) {
+  if (rows.length < 2) return [];
+  const headers = rows[0].map((header) => header.trim());
+  const missing = accountFields.filter((field) => !headers.includes(field));
+  if (missing.length) {
+    throw new Error(`导入文件缺少字段：${missing.join("、")}`);
+  }
+  return rows
+    .slice(1)
+    .map((row) => {
+      const rawAccount = {};
+      headers.forEach((header, index) => {
+        rawAccount[header] = row[index] || "";
+      });
+      return normalizeImportedAccount(rawAccount);
+    })
+    .filter((account) => accountFields.some((field) => account[field]));
+}
+
+function parseAccountsImport(text) {
+  const trimmed = text.trim();
+  if (!trimmed) return [];
+  if (trimmed.includes("<table")) {
+    const doc = new DOMParser().parseFromString(trimmed, "text/html");
+    const tableRows = [...doc.querySelectorAll("tr")].map((tr) => [...tr.children].map((cell) => cell.textContent.trim()));
+    return rowsToAccounts(tableRows);
+  }
+  return rowsToAccounts(parseDelimitedRows(trimmed));
+}
+
+async function importAccountsFromFile(file) {
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const importedAccounts = parseAccountsImport(text);
+    if (!importedAccounts.length) {
+      alert("没有从文件中读取到账号数据。");
+      return;
+    }
+    const confirmed = confirm(`将导入 ${importedAccounts.length} 条账号记录，并覆盖当前浏览器里的账号资产表。是否继续？`);
+    if (!confirmed) return;
+    accounts.splice(0, accounts.length, ...importedAccounts);
+    accounts.forEach(syncCustomOptionsFromAccount);
+    saveAccounts();
+    saveOptionLists();
+    refreshPlatformFilter();
+    refreshOwnerFilter();
+    editingAccountId = null;
+    renderAccounts();
+    alert("导入完成。");
+  } catch (error) {
+    alert(error.message || "导入失败，请确认文件格式是否正确。");
+  }
+}
+
 function renderAccounts() {
   if (!accountRows || !accountSearch || !platformFilter || !ownerFilter) return;
   const term = accountSearch.value.trim().toLowerCase();
@@ -862,4 +965,13 @@ const generateBtn = document.querySelector("#generateBtn");
 if (generateBtn) generateBtn.addEventListener("click", generateContent);
 const exportAccountsBtn = document.querySelector("#exportAccountsBtn");
 if (exportAccountsBtn) exportAccountsBtn.addEventListener("click", exportAccountsToExcel);
+const importAccountsBtn = document.querySelector("#importAccountsBtn");
+const importAccountsFile = document.querySelector("#importAccountsFile");
+if (importAccountsBtn && importAccountsFile) {
+  importAccountsBtn.addEventListener("click", () => importAccountsFile.click());
+  importAccountsFile.addEventListener("change", () => {
+    importAccountsFromFile(importAccountsFile.files?.[0]);
+    importAccountsFile.value = "";
+  });
+}
 loadBackendRecords();

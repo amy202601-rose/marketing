@@ -268,6 +268,10 @@ a {
   background: #edf3ef;
 }
 
+.file-input {
+  display: none;
+}
+
 .hero-actions a + a {
   background: rgba(255, 255, 255, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.35);
