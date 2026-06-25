@@ -4,9 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>网站帐号管理 | Wallace Financial Service</title>
-    <link rel="stylesheet" href="styles.css?v=20260625-backend-sync" />
-    <script src="backend-config.js?v=20260625-backend-sync"></script>
-    <script src="auth.js?v=20260625-backend-sync"></script>
+    <link rel="stylesheet" href="styles.css?v=20260625-excel-export" />
+    <script src="backend-config.js?v=20260625-excel-export"></script>
+    <script src="auth.js?v=20260625-excel-export"></script>
   </head>
   <body>
     <div class="shell">
@@ -35,7 +35,10 @@
               <p>Account Fields</p>
               <h2>账号资产表</h2>
             </div>
-            <button class="primary-btn" id="addAccountBtn" type="button">新增账号</button>
+            <div class="section-actions">
+              <button class="secondary-btn" id="exportAccountsBtn" type="button">导出Excel</button>
+              <button class="primary-btn" id="addAccountBtn" type="button">新增账号</button>
+            </div>
           </div>
           <div class="toolbar" aria-label="账号筛选">
             <input id="accountSearch" type="search" placeholder="搜索平台、账号名称、负责人、备注" />
@@ -84,6 +87,6 @@
       </form>
     </dialog>
 
-    <script src="script.js?v=20260625-backend-sync"></script>
+    <script src="script.js?v=20260625-excel-export"></script>
   </body>
 </html>

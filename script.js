@@ -555,6 +555,46 @@ function sortById(left, right) {
   return leftId.localeCompare(rightId, "zh-CN", { numeric: true, sensitivity: "base" });
 }
 
+function excelCell(value) {
+  const text = escapeHtml(value);
+  return `<td style="mso-number-format:'\\@';">${text}</td>`;
+}
+
+function exportAccountsToExcel() {
+  const rows = [...accounts].sort(sortById);
+  const header = accountFields.map((field) => `<th>${escapeHtml(field)}</th>`).join("");
+  const body = rows
+    .map((account) => `<tr>${accountFields.map((field) => excelCell(account[field] || "")).join("")}</tr>`)
+    .join("");
+  const worksheet = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      table { border-collapse: collapse; }
+      th, td { border: 1px solid #999; padding: 6px 8px; }
+      th { background: #edf3ef; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <table>
+      <thead><tr>${header}</tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+  </body>
+</html>`;
+  const date = new Date().toISOString().slice(0, 10);
+  const blob = new Blob(["\ufeff", worksheet], { type: "application/vnd.ms-excel;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `账号资产表-${date}.xls`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 function renderAccounts() {
   if (!accountRows || !accountSearch || !platformFilter || !ownerFilter) return;
   const term = accountSearch.value.trim().toLowerCase();
@@ -820,4 +860,6 @@ if (platformFilter) platformFilter.addEventListener("change", renderAccounts);
 if (ownerFilter) ownerFilter.addEventListener("change", renderAccounts);
 const generateBtn = document.querySelector("#generateBtn");
 if (generateBtn) generateBtn.addEventListener("click", generateContent);
+const exportAccountsBtn = document.querySelector("#exportAccountsBtn");
+if (exportAccountsBtn) exportAccountsBtn.addEventListener("click", exportAccountsToExcel);
 loadBackendRecords();
